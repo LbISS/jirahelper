@@ -1,0 +1,27 @@
+﻿{
+	"Jira": {
+		"Uri": "https://somejira.com/",
+		"User": "lorem",
+		"Password": "ipsum468"
+	},
+	"Strategies": [
+		{
+			"Mode": "JiraHelper.Core.Business.Strategy.IBackgroundStrategy",
+			"Type": "JiraHelper.Core.Business.Strategy.NewRemovedStrategy",
+			"Key": "blockers",
+			"Parameters": {
+				/*"Checker": {
+					"type": "filter",
+					"filterId": "54123"
+				},
+				"Storage": {
+					"type": "jsonfile",
+					"path": "data/blockers.json"
+				},
+				"Action": {
+
+				}*/
+			}
+		}
+	]
+}

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <PackageProjectUrl>https://github.com/LbISS/jirahelper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/LbISS/jirahelper</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>https://github.com/LbISS/jirahelper/blob/master/LICENSE</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Atlassian.SDK" Version="13.0.0" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="CsvHelper" Version="27.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+    <PackageReference Include="System.Text.Json" Version="6.0.2" />
+  </ItemGroup>
+
+</Project>

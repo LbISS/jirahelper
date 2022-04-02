@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<PackageProjectUrl>https://github.com/LbISS/jirahelper</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/LbISS/jirahelper</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Copyright>https://github.com/LbISS/jirahelper/blob/master/LICENSE</Copyright>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="appsettings.Development.json" />
+		<None Remove="appsettings.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Include="appsettings.*.json">
+			<DependentUpon>appsettings.json</DependentUpon>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\JiraHelper.Core\JiraHelper.Core.csproj" />
+	</ItemGroup>
+	
+</Project>
