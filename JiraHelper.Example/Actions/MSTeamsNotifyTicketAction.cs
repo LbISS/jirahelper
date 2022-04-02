@@ -20,13 +20,14 @@ namespace JiraHelper.Example.Actions
 		public string WebhookUri { get; }
 
 		/// <summary>
-		/// The webhook service.
-		/// </summary>
-		protected WebHookService WebhookService { get; }
-		/// <summary>
 		/// The jira URI.
 		/// </summary>
 		protected string JiraUri { get; }
+
+		/// <summary>
+		/// The webhook service.
+		/// </summary>
+		protected WebHookService WebhookService { get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MSTeamsNotifyTicketAction"/> class.
@@ -43,12 +44,12 @@ namespace JiraHelper.Example.Actions
 		/// </exception>
 		public MSTeamsNotifyTicketAction(
 			string webhookUri,
-			WebHookService webhookService,
-			string jiraUri)
+			string jiraUri,
+			WebHookService webhookService)
 		{
 			WebhookUri = webhookUri ?? throw new ArgumentNullException(nameof(webhookUri));
-			WebhookService = webhookService ?? throw new ArgumentNullException(nameof(webhookService));
 			JiraUri = jiraUri ?? throw new ArgumentNullException(nameof(jiraUri));
+			WebhookService = webhookService ?? throw new ArgumentNullException(nameof(webhookService));
 		}
 
 		/// <summary>
