@@ -7,20 +7,29 @@
 	"Strategies": [
 		{
 			"Mode": "JiraHelper.Core.Business.Strategy.IBackgroundStrategy",
-			"Type": "JiraHelper.Core.Business.Strategy.NewRemovedStrategy",
+			"Type": "JiraHelper.Core.Business.Strategy.NewAndClosedStrategy",
 			"Key": "blockers",
 			"Parameters": {
-				/*"Checker": {
-					"type": "filter",
-					"filterId": "54123"
+				"Checker": {
+					"Type": "JiraHelper.Core.Business.Checkers.FilterChecker",
+					"Parameters": {
+						"filterId": "12345"
+					}
 				},
 				"Storage": {
-					"type": "jsonfile",
-					"path": "data/blockers.json"
+					"Type": "JiraHelper.Core.Business.Storage.JsonFileStorage",
+					"Parameters": {
+						"filePath": "data/blockers.json"
+					}
 				},
 				"Action": {
-
-				}*/
+					"Type": "JiraHelper.Example.Actions.MSTeamsNotifyBlockerAction",
+					"Parameters": {
+						"filePath": "data/blockers.json",
+						"webhookUri": "https://webhook.office.com/webhookb2/someguid@somegiud/IncomingWebhook/@someId/@someguid",
+						"jiraUri": "https://somejira.com/"
+					}
+				}
 			}
 		}
 	]

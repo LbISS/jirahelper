@@ -1,14 +1,17 @@
 ﻿using Atlassian.Jira;
 using CommandLine;
 using JiraHelper.Core.Business;
+using JiraHelper.Core.Config;
 using JiraHelper.Core.Rest.JiraServices;
 using JiraHelper.Core.Rest.MSTeams;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace JiraHelper.Core
@@ -18,7 +21,41 @@ namespace JiraHelper.Core
 		private const string DEFAULT_CONFIG = "config.json";
 		private const string STRATEGIES_FOLDER = "strategies";
 
-		private static readonly object _loggerLock = new Object();
+		private static readonly object _logLevelLock = new object();
+		private static LogLevel? _logLevel;
+		/// <summary>
+		/// Gets the logger.
+		/// </summary>
+		private static LogLevel LogLevel
+		{
+			get
+			{
+				if (_logLevel == null)
+				{
+					lock (_logLevelLock)
+					{
+						if (_logLevel == null)
+						{
+							// W/A for static logger on host build phase.
+							var isDev = string.Equals(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"), "development", StringComparison.InvariantCultureIgnoreCase);
+
+							var builder = new ConfigurationBuilder()
+								.SetBasePath(Directory.GetCurrentDirectory())
+								.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+								.AddJsonFile($"appsettings.{(isDev ? "Development" : "Production")}.json", optional: true);
+
+							IConfiguration config = builder.Build();
+
+							_logLevel = config.GetSection("Logging")?.GetSection("Console")?.GetSection("LogLevel")?.GetValue<LogLevel>("Default") ?? LogLevel.Information;
+
+						}
+					}
+				}
+				return _logLevel ?? LogLevel.Information;
+			}
+		}
+
+		private static readonly object _loggerLock = new object();
 		private static ILogger _logger;
 		/// <summary>
 		/// Gets the logger.
@@ -33,10 +70,9 @@ namespace JiraHelper.Core
 					{
 						if (_logger == null)
 						{
-
 							using var loggerFactory = LoggerFactory.Create(builder =>
 							{
-								builder.SetMinimumLevel(LogLevel.Information);
+								builder.SetMinimumLevel(LogLevel);
 								builder.AddConsole();
 							});
 							_logger = loggerFactory.CreateLogger("Startup");
@@ -54,39 +90,21 @@ namespace JiraHelper.Core
 		/// <returns></returns>
 		public static IHostBuilder CreateHostBuilderCommon(string[] args)
 		{
-			var startupArgs = Parser.Default.ParseArguments<StartupArgs>(args)
-				.MapResult(runnerArgs => runnerArgs, errors =>
-				{
-					Logger.LogWarning($"Errors parsing parameters: ", errors);
-					return new StartupArgs();
-				});
+			var startupArgs = ParseArguments(args);
 
-			startupArgs.ConfigFile = String.IsNullOrWhiteSpace(startupArgs.ConfigFile) ? DEFAULT_CONFIG : startupArgs.ConfigFile;
-
-			var config = new Config();
-
-			try
-			{
-				if (File.Exists(startupArgs.ConfigFile))
-				{
-					config = System.Text.Json.JsonSerializer.Deserialize<Config>(File.ReadAllText(startupArgs.ConfigFile));
-				}
-			}
-			catch (NotSupportedException exc)
-			{
-				Logger.LogError($"Error during parsing config file {exc.Message}", exc);
-			}
-
+			var config = LoadConfigFile(startupArgs);
 
 			return Host.CreateDefaultBuilder(args)
 				.ConfigureServices((host, services) =>
 				{
+					//Add non-configurable services
 					services = services
 						.AddScoped<IssuesRestService, IssuesRestService>()
 						.AddSingleton<WebHookService, WebHookService>()
 						.AddScoped<JiraStrategiesManager, JiraStrategiesManager>()
 						.AddHostedService<JiraBackgroundJob>();
 
+					//Add Jira client
 					if (String.IsNullOrWhiteSpace(config.Jira.Uri))
 					{
 						Logger.LogInformation($"Empty jira Uri provided");
@@ -101,18 +119,86 @@ namespace JiraHelper.Core
 						)
 					 );
 
-					LoadAssembliesForSpecificStrategies();
+					// Load strategies
+					List<Assembly> stratAssemblies = LoadAssembliesForSpecificStrategies();
+					stratAssemblies.Add(AppDomain.CurrentDomain.GetAssemblies().First(f => f.GetName().Name.Equals("JiraHelper.Core")));
+
+					var configResolver = new ConfigResolver(Logger, stratAssemblies);
 
 					foreach (var stratConfig in config.Strategies)
 					{
-						services = services.AddScoped(
+						try
+						{
+							services = services.AddScoped(
 										Type.GetType(stratConfig.Mode),
-										(serviceProvider) => Type.GetType(stratConfig.Type).GetConstructor(BindingFlags.Public, Type.EmptyTypes)
-									);
+										(serviceProvider) =>
+										{
+											var resolution = configResolver.ResolveConstructor(stratConfig, serviceProvider);
+											if (resolution.Item1)
+											{
+												return resolution.Item2;
+											}
+											else
+											{
+												throw new TypeLoadException($"No appropriate constructor have been found for strategy '{stratConfig.Type}'.");
+											}
+										});
+						}
+						catch (Exception exc)
+						{
+							Logger.LogError($"Error loading strategy '{stratConfig.Key}': ", exc);
+						}
+
 					}
 				});
 		}
 
+		/// <summary>
+		/// Parses the arguments.
+		/// </summary>
+		/// <param name="args">The arguments.</param>
+		/// <returns></returns>
+		private static StartupArgs ParseArguments(string[] args)
+		{
+			var startupArgs = Parser.Default.ParseArguments<StartupArgs>(args)
+				.MapResult(runnerArgs => runnerArgs, errors =>
+				{
+					Logger.LogWarning($"Errors parsing parameters: ", errors);
+					return new StartupArgs();
+				});
+
+			startupArgs.ConfigFile = String.IsNullOrWhiteSpace(startupArgs.ConfigFile) ? DEFAULT_CONFIG : startupArgs.ConfigFile;
+			return startupArgs;
+		}
+
+		/// <summary>
+		/// Loads the configuration file.
+		/// </summary>
+		/// <param name="startupArgs">The startup arguments.</param>
+		/// <returns></returns>
+		private static Config.Config LoadConfigFile(StartupArgs startupArgs)
+		{
+			var config = new Config.Config();
+
+			try
+			{
+				if (File.Exists(startupArgs.ConfigFile))
+				{
+					config = System.Text.Json.JsonSerializer.Deserialize<Config.Config>(File.ReadAllText(startupArgs.ConfigFile));
+				}
+			}
+			catch (NotSupportedException exc)
+			{
+				Logger.LogError($"Error during parsing config file {exc.Message}", exc);
+			}
+
+			return config;
+		}
+
+		/// <summary>
+		/// Loads the assemblies for dynamic specific strategies.
+		/// </summary>
+		/// <returns></returns>
 		private static List<Assembly> LoadAssembliesForSpecificStrategies()
 		{
 			List<Assembly> allAssemblies = new List<Assembly>();
@@ -120,7 +206,17 @@ namespace JiraHelper.Core
 			string strategiesPath = Path.Combine(currentPath, STRATEGIES_FOLDER);
 
 			foreach (string dll in Directory.GetFiles(strategiesPath, "*.dll"))
-				allAssemblies.Add(Assembly.LoadFile(dll));
+			{
+				try
+				{
+					allAssemblies.Add(Assembly.LoadFile(dll));
+					Logger.LogInformation($"Strategies from dll '{Path.GetFileName(dll)}' have been successfully loaded.");
+				}
+				catch (Exception exc)
+				{
+					Logger.LogError($"Error loading strategies from dll '{Path.GetFileName(dll)}'.", exc);
+				}
+			}
 
 			return allAssemblies;
 		}
