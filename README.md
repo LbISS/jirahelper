@@ -11,7 +11,7 @@ JiraHelper.console.exe -c config.json
 
 Parameters:
 ```
-  -c, --config    Path to config file. See [Config file](https://github.com/LbISS/jirahelper#config-file).
+  -c, --config    Path to config file.
 
   --help          Display this help screen.
 
