@@ -31,6 +31,38 @@
 					}
 				}
 			}
+		},
+		{
+			"Mode": "JiraHelper.Core.Business.Strategy.IActiveStrategy",
+			"Type": "JiraHelper.Example.Strategy.Iteration.IterationSaveStrategy",
+			"Key": "iterationSave",
+			"Parameters": {
+				"Checker": {
+					"Type": "JiraHelper.Core.Business.Checkers.FilterChecker",
+					"Parameters": {
+						"filterId": "12346"
+					}
+				},
+				"Storage": {
+					"Type": "JiraHelper.Core.Business.Storage.JsonFileStorage",
+					"Parameters": {
+						"filePath": "data/list.json"
+					}
+				}
+			}
+		},
+		{
+			"Mode": "JiraHelper.Core.Business.Strategy.IActiveStrategy",
+			"Type": "JiraHelper.Example.Strategy.Iteration.IterationGetFilterStrategy",
+			"Key": "iterationGetFromFile",
+			"Parameters": {
+				"Storage": {
+					"Type": "JiraHelper.Core.Business.Storage.JsonFileStorage",
+					"Parameters": {
+						"filePath": "data/list.json"
+					}
+				}
+			}
 		}
 	]
 }
