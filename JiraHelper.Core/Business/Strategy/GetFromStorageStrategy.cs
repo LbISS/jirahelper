@@ -11,22 +11,22 @@ namespace JiraHelper.Core.Business.Strategy
 	/// </summary>
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.AbstractStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.IBackgroundStrategy" />
-	public class GetFromFileStrategy<T> : AbstractStrategy, IActiveStrategy
+	public class GetFromStorageStrategy<T> : AbstractStrategy, IActiveStrategy
 	{
 		/// <summary>
 		/// The logger.
 		/// </summary>
-		protected ILogger<GetFromFileStrategy<T>> Logger { get; }
+		protected ILogger<GetFromStorageStrategy<T>> Logger { get; }
 
 		/// <summary>
 		/// The storage - used to cache/save results from other services.
 		/// </summary>
 		protected IStorage Storage { get; }
 
-		public GetFromFileStrategy(
+		public GetFromStorageStrategy(
 			string key,
 			IStorage storage,
-			ILogger<GetFromFileStrategy<T>> logger) : base(key)
+			ILogger<GetFromStorageStrategy<T>> logger) : base(key)
 		{
 			Storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
