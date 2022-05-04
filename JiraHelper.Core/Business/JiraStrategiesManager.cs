@@ -52,15 +52,31 @@ namespace JiraHelper.Core.Business
 			_logger.LogDebug($"Start JiraCheckersManager.RunAllBackgroundStrategies");
 			if (!cancellationToken.IsCancellationRequested)
 			{
-				var tasks = new ConcurrentBag<Task>();
-				foreach (var strategy in _bgStrategies)
+				try
 				{
-					tasks.Add(strategy.Run(cancellationToken));
-					_logger.LogDebug($"Scheduling {strategy}");
-				}
+					var tasks = new ConcurrentBag<Task>();
+					foreach (var strategy in _bgStrategies)
+					{
+						tasks.Add(strategy.Run(cancellationToken));
+						_logger.LogDebug($"Scheduling {strategy}");
+					}
 
-				_logger.LogDebug($"Awaiting all");
-				Task.WaitAll(tasks.ToArray(), cancellationToken);
+					_logger.LogDebug($"Awaiting all");
+					Task.WaitAll(tasks.ToArray(), cancellationToken);
+				}
+				catch (AggregateException aexc)
+				{
+					aexc.Handle((exc) =>
+					{
+						_logger.LogError(exc, "");
+						return true;
+					});
+
+				}
+				catch (Exception exc)
+				{
+					_logger.LogError(exc, "");
+				}
 			}
 			_logger.LogDebug($"Finish JiraCheckersManager.RunAllBackgroundStrategies");
 		}
@@ -73,7 +89,7 @@ namespace JiraHelper.Core.Business
 		{
 			var strategy = _activeStrategies.SingleOrDefault(w => w.Key == key);
 
-			if(strategy == null)
+			if (strategy == null)
 			{
 				throw new KeyNotFoundException($"Strategy with key '{key}' has not found or not implementing IActiveStrategy interface.");
 			}
