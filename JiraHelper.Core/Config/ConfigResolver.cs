@@ -10,12 +10,25 @@ using System.Text.Json.Nodes;
 
 namespace JiraHelper.Core.Config
 {
+	/// <summary>
+	/// Responsible for resolving all services and parameters from passed config for further regitration in hostbuilder.
+	/// </summary>
 	public class ConfigResolver
 	{
 		protected readonly ILogger Logger;
 		protected readonly List<Assembly> Assemblies;
 		protected readonly Dictionary<string, Type> AssembliesTypes;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ConfigResolver"/> class.
+		/// </summary>
+		/// <param name="logger">The logger.</param>
+		/// <param name="assemblies">The assemblies.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// logger
+		/// or
+		/// assemblies
+		/// </exception>
 		public ConfigResolver(ILogger logger, List<Assembly> assemblies)
 		{
 			Logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -24,23 +37,23 @@ namespace JiraHelper.Core.Config
 		}
 
 		/// <summary>
-		/// Gets the constructor.
+		/// Resolves the constructor for registration.
 		/// </summary>
-		/// <param name="jsonConfig">The strat configuration.</param>
+		/// <param name="jsonConfig">The json configuration.</param>
+		/// <param name="serviceProvider">The service provider.</param>
 		/// <returns></returns>
-		/// <exception cref="System.TypeLoadException">No appropriate constructor</exception>
 		public Tuple<bool, object> ResolveConstructor(ParameterizedEntityConfig jsonConfig, IServiceProvider serviceProvider)
 		{
 			Logger.LogDebug($"Finding constructor for '{jsonConfig.Type}'.");
 			var constructors = FindType(jsonConfig.Type).GetConstructors(BindingFlags.Public | BindingFlags.Instance);
 			Logger.LogDebug($"Found {constructors.Length} in total for '{jsonConfig.Type}'. Resolving parameter values...");
 
-			foreach (var constuctor in constructors)
+			foreach (var constructor in constructors)
 			{
 				try
 				{
-					var parameters = constuctor.GetParameters();
-					Logger.LogDebug($"Resolving constructor with {parameters.Length} parameters.");
+					var parameters = constructor.GetParameters();
+					Logger.LogDebug($"Resolving {parameters.Length} parameters for constructor.");
 					var parameterValues = new List<object>(parameters.Length);
 
 					foreach (var parameter in parameters)
@@ -52,27 +65,34 @@ namespace JiraHelper.Core.Config
 						parameterValues.Add(paramResolution.Item2);
 					}
 
-					if (parameters.Length == parameterValues.Count)
+					if (parameters.Length != parameterValues.Count)
 					{
-						var result = constuctor.Invoke(parameterValues.ToArray());
-						Logger.LogDebug($"Constructor '{jsonConfig.Type}' resolved with '{result}'.");
-						return new Tuple<bool, object>(true, result);
+						Logger.LogDebug($"Constructor '{jsonConfig.Type}' is not resolved. " +
+							$"Resolved only {parameterValues.Count} parameters out of {parameters.Length}.");
+						return new Tuple<bool, object>(false, null);
 					}
 
-					Logger.LogDebug($"Constructor '{jsonConfig.Type}' is not resolved.");
-					return new Tuple<bool, object>(false, null);
-
+					var result = constructor.Invoke(parameterValues.ToArray());
+					Logger.LogDebug($"Resolved constructor '{jsonConfig.Type}' with '{result}'.");
+					return new Tuple<bool, object>(true, result);
 				}
 				catch (Exception exc)
 				{
-					Logger.LogWarning($"Error on resolving constructor '{jsonConfig.Type}'", exc);
+					Logger.LogWarning($"Error on resolving constructor '{jsonConfig.Type}'.", exc);
 				}
 			}
 
 			return new Tuple<bool, object>(false, null);
 		}
 
-		public Tuple<bool, object> ResolveParameter(ParameterInfo parameterInfo, ParameterizedEntityConfig jsonTypeConfig, IServiceProvider serviceProvider)
+		/// <summary>
+		/// Resolves the parameter.
+		/// </summary>
+		/// <param name="parameterInfo">The parameter information.</param>
+		/// <param name="entityConfig">The parameter configuration.</param>
+		/// <param name="serviceProvider">The service provider.</param>
+		/// <returns></returns>
+		public Tuple<bool, object> ResolveParameter(ParameterInfo parameterInfo, ParameterizedEntityConfig entityConfig, IServiceProvider serviceProvider)
 		{
 			Logger.LogDebug($"Getting value for parameter '{parameterInfo.Name}' with type '{parameterInfo.ParameterType}'.");
 
@@ -81,12 +101,12 @@ namespace JiraHelper.Core.Config
 
 			if (parameterInfo.Name.Equals("Key", StringComparison.OrdinalIgnoreCase))
 			{
-				value = jsonTypeConfig.Key;
-				resolved = !string.IsNullOrEmpty(jsonTypeConfig.Key);
+				value = entityConfig.Key;
+				resolved = !string.IsNullOrEmpty(entityConfig.Key);
 			}
 			else if (parameterInfo.ParameterType == typeof(string))
 			{
-				JsonNode proposedParameter = GetParameterValue(jsonTypeConfig.Parameters, parameterInfo.Name);
+				JsonNode proposedParameter = GetParameterValue(entityConfig.Parameters, parameterInfo.Name);
 				if (proposedParameter != null)
 				{
 					value = proposedParameter.GetValue<string>();
@@ -97,14 +117,14 @@ namespace JiraHelper.Core.Config
 				|| parameterInfo.ParameterType.IsAssignableTo(typeof(IStorage))
 				|| parameterInfo.ParameterType.IsAssignableTo(typeof(IAction)))
 			{
-				var constructorResolution = ResolveConstructor(GetJsonTypeConfig(GetParameterValue(jsonTypeConfig.Parameters, parameterInfo.Name)), serviceProvider);
+				var constructorResolution = ResolveConstructor(GetEntityConfig(GetParameterValue(entityConfig.Parameters, parameterInfo.Name)), serviceProvider);
 				value = constructorResolution.Item2;
 				resolved = constructorResolution.Item1;
 			}
 			else if (parameterInfo.ParameterType == typeof(JsonNode)
 					|| parameterInfo.ParameterType == typeof(JsonObject))
 			{
-				value = jsonTypeConfig.Parameters;
+				value = entityConfig.Parameters;
 				resolved = true;
 			}
 			else
@@ -125,12 +145,22 @@ namespace JiraHelper.Core.Config
 			return new Tuple<bool, object>(resolved, value);
 		}
 
+		/// <summary>
+		/// Finds the type in all assemblies by name.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
 		private Type FindType(string name)
 		{
 			return AssembliesTypes[name];
 		}
 
-		private static ParameterizedEntityConfig GetJsonTypeConfig(JsonNode node)
+		/// <summary>
+		/// Gets the entity configuration.
+		/// </summary>
+		/// <param name="node">The JsonNode.</param>
+		/// <returns></returns>
+		private static ParameterizedEntityConfig GetEntityConfig(JsonNode node)
 		{
 			var result = new ParameterizedEntityConfig
 			{
@@ -142,6 +172,12 @@ namespace JiraHelper.Core.Config
 			return result;
 		}
 
+		/// <summary>
+		/// Gets the parameter value from JsonNode by name.
+		/// </summary>
+		/// <param name="node">The JsonNode.</param>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
 		private static JsonNode GetParameterValue(JsonObject node, string name)
 		{
 			KeyValuePair<string, JsonNode> param = node.FirstOrDefault(w => w.Key.Equals(name, StringComparison.OrdinalIgnoreCase));
