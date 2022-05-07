@@ -7,8 +7,10 @@ using Microsoft.Extensions.Logging;
 namespace JiraHelper.Core.Business.Strategy
 {
 	/// <summary>
-	/// Strategy saving infor about jira issues in storage
+	/// Strategy saving info about jira issues in storage
 	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <seealso cref="JiraHelper.Core.Business.Strategy.IActiveStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.AbstractStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.IBackgroundStrategy" />
 	public class GetFromStorageStrategy<T> : AbstractStrategy, IActiveStrategy
@@ -23,6 +25,17 @@ namespace JiraHelper.Core.Business.Strategy
 		/// </summary>
 		protected IStorage Storage { get; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GetFromStorageStrategy{T}"/> class.
+		/// </summary>
+		/// <param name="key">The key.</param>
+		/// <param name="storage">The storage.</param>
+		/// <param name="logger">The logger.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// storage
+		/// or
+		/// logger
+		/// </exception>
 		public GetFromStorageStrategy(
 			string key,
 			IStorage storage,

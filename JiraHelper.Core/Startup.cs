@@ -16,15 +16,25 @@ using System.Reflection;
 
 namespace JiraHelper.Core
 {
+	/// <summary>
+	/// Handling common stratup logic for both console and web application
+	/// </summary>
 	public static class Startup
 	{
+		/// <summary>
+		/// The default configuration file name
+		/// </summary>
 		private const string DEFAULT_CONFIG = "config.json";
+		/// <summary>
+		/// The folder name to search for custom strategies
+		/// </summary>
 		private const string STRATEGIES_FOLDER = "strategies";
 
 		private static readonly object _logLevelLock = new object();
 		private static LogLevel? _logLevel;
+
 		/// <summary>
-		/// Gets the logger.
+		/// The log level for stratup operations.
 		/// </summary>
 		private static LogLevel LogLevel
 		{
@@ -58,7 +68,7 @@ namespace JiraHelper.Core
 		private static readonly object _loggerLock = new object();
 		private static ILogger _logger;
 		/// <summary>
-		/// Gets the logger.
+		/// Gets the logger for startup operations.
 		/// </summary>
 		private static ILogger Logger
 		{

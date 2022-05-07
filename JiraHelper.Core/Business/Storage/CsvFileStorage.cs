@@ -8,11 +8,21 @@ using CsvHelper;
 
 namespace JiraHelper.Core.Business.Storage
 {
+	/// <summary>
+	/// Storage providing methods to work with csv files.
+	/// </summary>
+	/// <seealso cref="JiraHelper.Core.Business.Storage.IStorage" />
 	public class CsvFileStorage : IStorage
 	{
+		/// <summary>
+		/// The serializer settings
+		/// </summary>
 		protected JsonSerializerOptions SerializerSettings = new JsonSerializerOptions
 		{ };
 
+		/// <summary>
+		/// The culture.
+		/// </summary>
 		protected CultureInfo Culture
 		{
 			get
@@ -22,14 +32,27 @@ namespace JiraHelper.Core.Business.Storage
 			}
 		}
 
+		/// <summary>
+		/// The file path.
+		/// </summary>
 		public string FilePath { get; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CsvFileStorage"/> class.
+		/// </summary>
+		/// <param name="filePath">The file path.</param>
+		/// <exception cref="System.ArgumentNullException">filePath</exception>
 		public CsvFileStorage(
 			string filePath)
 		{
 			FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
 		}
 
+		/// <summary>
+		/// Saves the jira issues to csv file.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="issues">The issues.</param>
 		public void SaveIssues<T>(List<T> issues)
 		{
 			if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
@@ -50,6 +73,11 @@ namespace JiraHelper.Core.Business.Storage
 			}
 		}
 
+		/// <summary>
+		/// Gets the jira issues from csv file.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		public List<T> GetIssues<T>()
 		{
 			if (!File.Exists(FilePath))

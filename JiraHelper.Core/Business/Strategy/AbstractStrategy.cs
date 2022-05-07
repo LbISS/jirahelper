@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace JiraHelper.Core.Business.Strategy
 {
 	/// <summary>
-	/// Abstract strategy
+	/// Abstract strategy class implementing common logic for all strategies
 	/// </summary>
 	public abstract class AbstractStrategy
 	{

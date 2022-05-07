@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace JiraHelper.Core.Business.Strategy
 {
 	/// <summary>
-	/// Strategy saving infor about jira issues in storage
+	/// Strategy saving info about jira issues in storage
 	/// </summary>
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.AbstractStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.IBackgroundStrategy" />
@@ -68,7 +68,8 @@ namespace JiraHelper.Core.Business.Strategy
 			Logger.LogDebug($"Got {issuesFromServer.Count} issues from jira: {string.Join(",", issuesFromServer.Select(s => s.Key.Value)) }");
 
 			var issuesToSave = issuesFromServer.AsParallel()
-					.Select(s => {
+					.Select(s =>
+					{
 						Logger.LogDebug($"Issue {s.Key.Value} is saved.");
 						return ObjectToSaveConstructor(s);
 					})

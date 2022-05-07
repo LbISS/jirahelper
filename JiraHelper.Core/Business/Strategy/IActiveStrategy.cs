@@ -5,9 +5,9 @@ namespace JiraHelper.Core.Business.Strategy
 {
 
 	/// <summary>
-	/// Common interface for strategies
+	/// Common interface for strategies which will be called using API
 	/// </summary>
-	public interface IActiveStrategy: IStrategy
+	public interface IActiveStrategy : IStrategy
 	{
 		/// <summary>
 		/// Runs the specified strategy - composing checkers/storage/action and returns the result.

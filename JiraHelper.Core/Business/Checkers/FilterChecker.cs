@@ -8,7 +8,7 @@ using JiraHelper.Core.Rest.JiraServices;
 namespace JiraHelper.Core.Business.Checkers
 {
 	/// <summary>
-	/// Gets the issue by jira filter
+	/// Gets the issues by jira filter
 	/// </summary>
 	/// <seealso cref="JiraHelper.Core.Business.Checkers.IChecker" />
 	public class FilterChecker : IChecker

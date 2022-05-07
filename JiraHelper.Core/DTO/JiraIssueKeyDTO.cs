@@ -3,7 +3,7 @@
 namespace JiraHelper.Core.DTO
 {
 	/// <summary>
-	/// DTO for jira issue
+	/// DTO for jira issue containing only key
 	/// </summary>
 	public class JiraIssueKeyDTO
 	{
@@ -16,7 +16,7 @@ namespace JiraHelper.Core.DTO
 		/// Initializes a new instance of the <see cref="JiraIssueKeyDTO"/> class.
 		/// </summary>
 		public JiraIssueKeyDTO()
-		{}
+		{ }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JiraIssueKeyDTO"/> class.

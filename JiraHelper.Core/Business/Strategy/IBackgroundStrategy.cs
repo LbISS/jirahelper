@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace JiraHelper.Core.Business.Strategy
 {
 	/// <summary>
-	/// Common interface for strategies
+	/// Common interface for strategies which will be run in backdround periodically
 	/// </summary>
 	public interface IBackgroundStrategy : IStrategy
 	{

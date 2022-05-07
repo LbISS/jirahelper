@@ -5,7 +5,7 @@ using Atlassian.Jira;
 namespace JiraHelper.Core.Business.Actions
 {
 	/// <summary>
-	/// Interface for services doing smth. on jira issues.
+	/// Interface for services doing something with jira issues.
 	/// </summary>
 	public interface IAction
 	{

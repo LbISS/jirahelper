@@ -5,15 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Atlassian.Jira;
 using JiraHelper.Core.Business.Checkers;
-using JiraHelper.Core.Business.Storage;
 using JiraHelper.Core.Rest.JiraServices;
 using Microsoft.Extensions.Logging;
 
 namespace JiraHelper.Core.Business.Strategy
 {
 	/// <summary>
-	/// Strategy saving infor about jira issues in storage
+	/// Strategy saving info about jira issues in storage
 	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <seealso cref="JiraHelper.Core.Business.Strategy.IActiveStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.AbstractStrategy" />
 	/// <seealso cref="JiraHelper.Core.Business.Strategy.IBackgroundStrategy" />
 	public class GetStrategy<T> : AbstractStrategy, IActiveStrategy
@@ -33,8 +34,26 @@ namespace JiraHelper.Core.Business.Strategy
 		protected IChecker Checker { get; }
 
 
+		/// <summary>
+		/// Constructor for object which will be saved.
+		/// </summary>
 		protected Func<Issue, T> ObjectToSaveConstructor { get; }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GetStrategy{T}"/> class.
+		/// </summary>
+		/// <param name="key">The key.</param>
+		/// <param name="objectToSaveConstructor">The object to save constructor.</param>
+		/// <param name="checker">The checker.</param>
+		/// <param name="issuesService">The issues service.</param>
+		/// <param name="logger">The logger.</param>
+		/// <exception cref="System.ArgumentNullException">
+		/// checker
+		/// or
+		/// issuesService
+		/// or
+		/// logger
+		/// </exception>
 		public GetStrategy(
 			string key,
 			Func<Issue, T> objectToSaveConstructor,
@@ -56,13 +75,15 @@ namespace JiraHelper.Core.Business.Strategy
 		/// Runs the specified strategy - composing checkers/storage/action and returns the result.
 		/// </summary>
 		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <returns></returns>
 		public async Task<object> Run(CancellationToken cancellationToken)
 		{
 			List<Issue> issuesFromServer = await Checker.GetIssues(cancellationToken);
 			Logger.LogDebug($"Got {issuesFromServer.Count} issues from jira: {string.Join(",", issuesFromServer.Select(s => s.Key.Value)) }");
 
 			var issuesToSave = issuesFromServer.AsParallel()
-					.Select(s => {
+					.Select(s =>
+					{
 						Logger.LogDebug($"Issue {s.Key.Value} is saved.");
 						return ObjectToSaveConstructor(s);
 					})

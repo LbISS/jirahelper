@@ -44,7 +44,7 @@ namespace JiraHelper.Core.Business
 		}
 
 		/// <summary>
-		/// Running all available strategies.
+		/// Running all available background strategies.
 		/// </summary>
 		/// <param name="cancellationToken">The cancellation token.</param>
 		public void RunAllBackgroundStrategies(CancellationToken cancellationToken)
@@ -82,21 +82,29 @@ namespace JiraHelper.Core.Business
 		}
 
 		/// <summary>
-		/// Running all available strategies.
+		/// Running specific active strategy by key.
 		/// </summary>
+		/// <param name="key">The key.</param>
 		/// <param name="cancellationToken">The cancellation token.</param>
+		/// <returns></returns>
+		/// <exception cref="System.Collections.Generic.KeyNotFoundException">Strategy with key '{key}' has not found or not implementing IActiveStrategy interface.</exception>
 		public Task<object> RunStrategy(string key, CancellationToken cancellationToken)
 		{
-			var strategy = _activeStrategies.SingleOrDefault(w => w.Key == key);
+			var strategy = _activeStrategies.Where(w => w.Key == key).ToList();
 
-			if (strategy == null)
+			if (strategy == null || strategy.Count == 0)
 			{
-				throw new KeyNotFoundException($"Strategy with key '{key}' has not found or not implementing IActiveStrategy interface.");
+				throw new KeyNotFoundException($"Strategy with key '{key}' has not found or it's not implementing IActiveStrategy interface.");
+			}
+
+			if (strategy.Count > 1)
+			{
+				throw new InvalidOperationException($"Cannot determine which strategy to run - multiple strategies found with key '{key}'.");
 			}
 
 			if (!cancellationToken.IsCancellationRequested)
 			{
-				return strategy.Run(cancellationToken);
+				return strategy[0].Run(cancellationToken);
 			}
 
 			return Task.FromResult(default(object));

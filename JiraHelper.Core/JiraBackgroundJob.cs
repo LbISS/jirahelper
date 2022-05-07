@@ -19,12 +19,22 @@ namespace JiraHelper
 		private readonly ILogger<JiraBackgroundJob> _logger;
 		private bool firstRun = true;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="JiraBackgroundJob"/> class.
+		/// </summary>
+		/// <param name="services">The services provider.</param>
+		/// <param name="logger">The logger.</param>
+		/// <exception cref="System.ArgumentNullException">logger</exception>
 		public JiraBackgroundJob(IServiceProvider services, ILogger<JiraBackgroundJob> logger)
 		{
 			_services = services;
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
+		/// <summary>
+		/// Executes asynchronously all background strategies.
+		/// </summary>
+		/// <param name="cancellationToken">The cancellation token.</param>
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
 			while (!cancellationToken.IsCancellationRequested)
