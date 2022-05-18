@@ -215,6 +215,12 @@ namespace JiraHelper.Core
 			string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 			string strategiesPath = Path.Combine(currentPath, STRATEGIES_FOLDER);
 
+			if (!Directory.Exists(strategiesPath))
+			{
+				Logger.LogInformation($"No custom strategies will be loaded - '{strategiesPath}' folder not found.");
+				return new List<Assembly>();
+			}
+
 			foreach (string dll in Directory.GetFiles(strategiesPath, "*.dll"))
 			{
 				try
