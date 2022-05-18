@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JiraHelper.Core.Business.Strategy;
+using JiraHelper.Core.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace JiraHelper.Core.Business
@@ -94,12 +95,12 @@ namespace JiraHelper.Core.Business
 
 			if (strategy == null || strategy.Count == 0)
 			{
-				throw new KeyNotFoundException($"Strategy with key '{key}' has not found or it's not implementing IActiveStrategy interface.");
+				throw new StrategyNotFoundException($"Strategy with key '{key}' has not found or it's not implementing IActiveStrategy interface.");
 			}
 
 			if (strategy.Count > 1)
 			{
-				throw new InvalidOperationException($"Cannot determine which strategy to run - multiple strategies found with key '{key}'.");
+				throw new StrategyNotFoundException($"Cannot determine which strategy to run - multiple strategies found with key '{key}'.");
 			}
 
 			if (!cancellationToken.IsCancellationRequested)

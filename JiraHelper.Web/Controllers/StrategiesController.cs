@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using JiraHelper.Core.Business;
+using JiraHelper.Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -56,7 +57,16 @@ namespace JiraHelper.Controllers
 		[Route("{strategyKey}")]
 		public async Task<IActionResult> RunStrategy(string strategyKey, CancellationToken cancellationToken)
 		{
-			var result = await _jiraStrategiesManager.RunStrategy(strategyKey, cancellationToken);
+			object result;
+			try
+			{
+				result = await _jiraStrategiesManager.RunStrategy(strategyKey, cancellationToken);
+			}
+			catch (StrategyNotFoundException snfexc)
+			{
+				_logger.LogError(snfexc, snfexc.Message);
+				return NotFound(snfexc.Message);
+			}
 			return Ok(result);
 		}
 	}
