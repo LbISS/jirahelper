@@ -33,6 +33,14 @@ namespace JiraHelper.Core
 		private static readonly object _logLevelLock = new object();
 		private static LogLevel? _logLevel;
 
+		private static string AppPath
+		{
+			get
+			{
+				return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			}
+		}
+
 		/// <summary>
 		/// The log level for stratup operations.
 		/// </summary>
@@ -177,7 +185,7 @@ namespace JiraHelper.Core
 					return new StartupArgs();
 				});
 
-			startupArgs.ConfigFile = String.IsNullOrWhiteSpace(startupArgs.ConfigFile) ? DEFAULT_CONFIG : startupArgs.ConfigFile;
+			startupArgs.ConfigFile = String.IsNullOrWhiteSpace(startupArgs.ConfigFile) ? Path.Combine(AppPath, DEFAULT_CONFIG) : startupArgs.ConfigFile;
 			return startupArgs;
 		}
 
@@ -212,8 +220,7 @@ namespace JiraHelper.Core
 		private static List<Assembly> LoadAssembliesForSpecificStrategies()
 		{
 			List<Assembly> allAssemblies = new List<Assembly>();
-			string currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-			string strategiesPath = Path.Combine(currentPath, STRATEGIES_FOLDER);
+			string strategiesPath = Path.Combine(AppPath, STRATEGIES_FOLDER);
 
 			if (!Directory.Exists(strategiesPath))
 			{
