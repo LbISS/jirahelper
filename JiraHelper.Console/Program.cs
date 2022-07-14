@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using JiraHelper.Core.Business;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ConsoleRunner
 {
@@ -13,7 +15,15 @@ namespace ConsoleRunner
 		/// <param name="args">The arguments.</param>
 		public static void Main(string[] args)
 		{
-			JiraHelper.Core.Startup.CreateHostBuilderCommon(args).Build().Run();
+			var host = JiraHelper.Core.Startup.CreateHostBuilderCommon(args).Build();
+
+			using (var scope = host.Services.CreateScope())
+			{
+				var jiraManager = scope.ServiceProvider.GetRequiredService<JiraStrategiesManager>();
+				jiraManager.RunAllActiveStrategies(System.Threading.CancellationToken.None);
+			}
+
+			host.Run();
 		}
 	}
 }

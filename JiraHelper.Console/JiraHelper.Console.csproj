@@ -38,5 +38,11 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\JiraHelper.Core\JiraHelper.Core.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="config.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 	
 </Project>

@@ -63,6 +63,25 @@
 					}
 				}
 			}
+		},
+		{
+			"Mode": "JiraHelper.Core.Business.Strategy.IActiveStrategy",
+			"Type": "JiraHelper.Example.Strategy.Iteration.UserStoryAnalyticsSaveStrategy",
+			"Key": "usAnalyticsSave",
+			"Parameters": {
+				"Checker": {
+					"Type": "JiraHelper.Core.Business.Checkers.FilterChecker",
+					"Parameters": {
+						"filterId": "12347"
+					}
+				},
+				"Storage": {
+					"Type": "JiraHelper.Core.Business.Storage.CsvFileStorage",
+					"Parameters": {
+						"filePath": "data/usLeadTime.csv"
+					}
+				}
+			}
 		}
 	]
 }

@@ -18,10 +18,16 @@ Parameters:
   --version       Display version information.
   ```
 
+All background strategies will be run every 5 minutes by console application. 
+
+All active strategies will be run once on the start of console app.
+
 # Run as a web application
 To run app as a web application you need to build & publish `JiraHelper.Web` project and run it using any web application server (IIS, Apache, etc.). For temp purposes the project could be started on IISExpress using debug command from the Visual Studio.
 
-The application provides one simple controller `StrategiesController` which will act on the POST requests sent to the `/Strategies/**key**` endpoint, where **key** is the active strategy key from the config.
+All background strategies will be run every 5 minutes by web application. 
+
+For active strategies the application provides one simple controller `StrategiesController` which will act on the POST requests sent to the `/Strategies/**key**` endpoint, where **key** is the active strategy key from the config.
 
 # Config file
 The config file is describing final logic and composition of semantic blocks which will be run as well as general properties. 
@@ -83,6 +89,20 @@ The library could implement any additional classes and extend abstract and speci
 In the JiraHelper.Example project some custom strategies are introduced and could be used as an example.
 
 If you think that you've done great job and created new good strategy/action/etc. you could create a pull-request in Core project (if your code could be widely reused) or in Example project (if there some specifics).
+
+## Debug extension code
+
+Add your project to the Visual Studio solution. 
+
+Build extension. 
+
+Copy resulting .dll into the /strategies/ folder in JiraHelper.Console/bin/Debug/\<targetPlatform\>/strategies
+
+Put into JiraHelper.Console/bin/Debug/\<targetPlatform\> file config.json running your strategy.
+
+Set JiraHelper.Console as Startup Project.
+
+Run Debug mode from Visual Studio.
 
 ## Sample scenarios
 

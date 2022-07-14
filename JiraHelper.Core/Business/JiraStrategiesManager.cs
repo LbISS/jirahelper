@@ -50,7 +50,7 @@ namespace JiraHelper.Core.Business
 		/// <param name="cancellationToken">The cancellation token.</param>
 		public void RunAllBackgroundStrategies(CancellationToken cancellationToken)
 		{
-			_logger.LogDebug($"Start JiraCheckersManager.RunAllBackgroundStrategies");
+			_logger.LogDebug($"Start JiraStrategiesManager.RunAllBackgroundStrategies");
 			if (!cancellationToken.IsCancellationRequested)
 			{
 				try
@@ -62,7 +62,15 @@ namespace JiraHelper.Core.Business
 						_logger.LogDebug($"Scheduling {strategy}");
 					}
 
-					_logger.LogDebug($"Awaiting all");
+					if (!tasks.IsEmpty)
+					{
+						_logger.LogDebug($"Awaiting all scheduled tasks");
+					}
+					else
+					{
+						_logger.LogDebug($"No tasks scheduled");
+					}
+
 					Task.WaitAll(tasks.ToArray(), cancellationToken);
 				}
 				catch (AggregateException aexc)
@@ -79,7 +87,53 @@ namespace JiraHelper.Core.Business
 					_logger.LogError(exc, "");
 				}
 			}
-			_logger.LogDebug($"Finish JiraCheckersManager.RunAllBackgroundStrategies");
+			_logger.LogDebug($"Finish JiraStrategiesManager.RunAllBackgroundStrategies");
+		}
+
+		/// <summary>
+		/// Running all available active strategies.
+		/// </summary>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		public void RunAllActiveStrategies(CancellationToken cancellationToken)
+		{
+			_logger.LogDebug($"Start JiraStrategiesManager.RunAllActiveStrategies");
+			if (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					var tasks = new ConcurrentBag<Task>();
+					foreach (var strategy in _activeStrategies)
+					{
+						tasks.Add(strategy.Run(cancellationToken));
+						_logger.LogDebug($"Scheduling {strategy}");
+					}
+
+					if (!tasks.IsEmpty)
+					{
+						_logger.LogDebug($"Awaiting all scheduled tasks");
+					}
+					else
+					{
+						_logger.LogDebug($"No tasks scheduled");
+					}
+
+					Task.WaitAll(tasks.ToArray(), cancellationToken);
+				}
+				catch (AggregateException aexc)
+				{
+					aexc.Handle((exc) =>
+					{
+						_logger.LogError(exc, "");
+						return true;
+					});
+
+				}
+				catch (Exception exc)
+				{
+					_logger.LogError(exc, "");
+				}
+			}
+			_logger.LogDebug($"Finish JiraStrategiesManager.RunAllActiveStrategies");
 		}
 
 		/// <summary>
